@@ -11,9 +11,14 @@ suspend fun main() {
     var stringResult = ""
     val time = measureTimeMillis {
         coroutineScope {
-            val channel = getList(storage.text)
-            channel.consumeEach {
+            val channelOne = getList(storage.text)
+            val channelTwo = modifiedList(channelOne)
+            channelTwo.consumeEach {
                 stringResult += it
+            }
+            val listOfChars = dividingIntoLines(stringResult)
+            for (i in listOfChars) {
+                println(i[0])
             }
         }
     }
@@ -42,4 +47,14 @@ fun dividingIntoLines(text: String): List<String> {
         }
     }
     return result
+}
+
+suspend fun CoroutineScope.modifiedList(channel: ReceiveChannel<String>): ReceiveChannel<String> = produce {
+    channel.consumeEach {
+        if (it[0].isLowerCase()) {
+            send(it.replaceFirstChar { it.uppercase() })
+        } else {
+            send(it)
+        }
+    }
 }
